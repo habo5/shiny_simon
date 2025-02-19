@@ -1,3 +1,6 @@
+install.packages("readr")
+library(readr)
+
 get_day_name <- function(day_number) {
   days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
   
@@ -9,6 +12,8 @@ get_day_name <- function(day_number) {
   }
 }
 
-write_rds(get_day_name, "C:/Users/sibe/OneDrive - EaDania/Datavisualisering/2025/GitHub/03_lektion_shiny/03_lektion/model/day.Rds")
+write_rds(get_day_name, "C:/Users/hajer/OneDrive/Documents/GitHub/03_lektion_shiny/shiny_simon/app/day.Rds")
 
 #get_day_name(2)
+
+getwd()

@@ -147,7 +147,7 @@ server <- function(input, output) {
   
   day <- reactive({
     
-    day <- readRDS("model/day.Rds")
+    day <- readRDS("day.Rds")
     
   })
   
