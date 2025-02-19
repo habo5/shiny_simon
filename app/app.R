@@ -3,155 +3,111 @@ library(tidyverse)
 library(bslib)
 library(bsicons)
 
-#Skal ikke sættes når app'en skal deployes. Det er kun til lokal testning
-#setwd("C:/Users/sibe/OneDrive - EaDania/Datavisualisering/2025/GitHub/03_lektion_shiny/03_lektion")
-
-day <- readRDS("C:/Users/hajer/OneDrive/Documents/GitHub/shiny_simon/app/day.Rds") 
-
-# Define UI for application that draws a histogram
+# Define UI for application
 ui <- fluidPage(
   
-  title = "Datavisualisering",
+  title = "VFF_Datavisualisering",
   
   # Application title
   titlePanel("EA Dania 2025"),
   
-  # Sidebar with a slider input for number of bins 
+  # Sidebar layout
   sidebarLayout(
     sidebarPanel(
       
-      # Logo --------------------------------------------------------------------
-      
-      
+      # Logo
       div(img(height = 65, width = 80, src = "dania_logo.png"), # Her indsætter jeg et logo
           style = "text-align: center;"),
       
+      # Radio buttons for 'dag_kategori_feriehverdag_efterårsferie'
+      radioButtons("sel_dag_kategori_feriehverdag_efterårsferie",
+                   "Select if it is  dag_kategori_feriehverdag_efterårsferie' (Yes or No)",
+                   choices = list("Yes" = 1, "No" = 0),
+                   selected = 1),
       
-      # Day selector ------------------------------------------------------------
+      # Radio buttons for team 'stilling' (Low, Medium, or Top)
+      radioButtons("modstanderhold_stilling_superligua",
+                   "Select the opponent position (Low, Medium, or Top)",
+                   choices = list("Low" = "low", "Medium" = "medium", "Top" = "top"),
+                   selected = "low"),
       
-      numericInput("sel_day",
-                   "Select a number to return a day",
-                   min = "1",
-                   max = "7",
-                   value = "1"),
+      # Radio buttons for 'ferieefterårsferie' (Yes or No)
+      radioButtons("ferieefterårsferie",
+                   "Select 'ferieefterårsferie' (Yes or No)",
+                   choices = list("Yes" = 1, "No" = 0),
+                   selected = 1),
+      
+      # Input for 'rain'
+      numericInput("sel_rain",
+                   "Select if it will rain (1 = Yes, 0 = No)",
+                   min = 0,
+                   max = 1,
+                   value = 0),
+      
+      sliderInput("sel_win_ratio_3",
+                  "Select the 'win_ratio_3' value",
+                  min = 0,
+                  max = 1,
+                  value = 0,
+                  step = 1/3),
       
       
-      # Slider ------------------------------------------------------------------
-      
-      
-      uiOutput("slider_ui")
+      # Slider for 'år' (year)
+      sliderInput("sel_year",
+                  "Select the year ",
+                  min = 2000,
+                  max = 2030,
+                  value = 2025,
+                  step = 1)
     ),
     
-    # Main panel --------------------------------------------------------------
-    
-    
-    # Show a plot of the generated distribution
+    # Main panel
     mainPanel(
-      tabsetPanel(tabPanel("Day",
-                           uiOutput("day")),
-                  tabPanel("Plot 1",
-                           plotOutput("plot1")),
-                  tabPanel("Plot 2",
-                           sliderInput("hej",
-                                       "Test",
-                                       min = 1,
-                                       max = 10,
-                                       step = 1,
-                                       value = 5),
-                           hr(),
-                           plotOutput("plot2")))
-      
+      tabsetPanel(tabPanel("Predicted_VIP_attendance",
+                           uiOutput("Predict_VIP_attendance"))
+      )
     )
   )
 )
 
-# Define server logic required to draw a histogram
+# Define server logic
 server <- function(input, output) {
   
-  # Value box day
+  # Load the modstanderhold_stilling function from the RDS file
+  modstanderhold_stilling <- readRDS("C:/Users/hajer/OneDrive/Documents/GitHub/shiny_simon/app/modstanderhold_stilling.Rds")
   
-  output$day <- renderUI({
-    
-    day <- day()
-    
-    weekday <- day(input$sel_day)
-    
-    bslib::value_box(title = "The chosen day is:",
-                     value = weekday,
-                     showcase = bs_icon("bank2"),
-                     class = "bg-danger")
-    
+  # Reactive expression to get the team 'stilling' based on user selection
+  stilling_result <- reactive({
+    modstanderhold_stilling(input$modstanderhold_stilling_superligua)
   })
   
+  # Load Predict_VIP_attendance model
+  Predict_VIP_attendance <- reactive({ readRDS("predict_VIP_attendance.Rds") })
   
-  output$slider_ui <- renderUI({
+  # Output UI for predicted VIP attendance
+  output$Predict_VIP_attendance <- renderUI({
     
-    req(passat())
+    # Get the predicted VIP attendance from the model
+    Predicted_VIP_attendance <- Predict_VIP_attendance()(
+      as.numeric(input$sel_year), 
+      as.numeric(stilling_result()$low), 
+      as.numeric(stilling_result()$medium), 
+      as.numeric(stilling_result()$top), 
+      as.numeric(input$ferieefterårsferie), 
+      as.numeric(input$sel_rain), 
+      as.numeric(input$sel_win_ratio_3), 
+      as.numeric(input$sel_dag_kategori_feriehverdag_efterårsferie)
+    )
     
-    passat <- passat()
-    
-    sliderInput("bins",
-                "Number of bins:",
-                min = min(passat$year, na.rm = TRUE),
-                max = max(passat$year, na.rm = TRUE),
-                value = 5)
-    
+    # Value box prediction
+    bslib::value_box(
+      title = "The predicted VIP attendance is:",
+      value = Predicted_VIP_attendance,
+      showcase = bs_icon("bank2"),
+      class = "bg-danger"
+    )
   })
-  
-  
-  output$plot1 <- renderPlot({
-    
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2]
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white',
-         xlab = 'Waiting time to next eruption (in mins)',
-         main = 'Histogram of waiting times')
-  })
-  
-  
-  output$plot2 <- renderPlot({
-    
-    print(passat())
-    
-    # passat <- readxl::read_excel("data/passat.xlsx")
-    # 
-    # print(passat)
-    
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2]
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white',
-         xlab = 'Waiting time to next eruption (in mins)',
-         main = 'Histogram of waiting times')
-  })
-  
-  
-  # Reactive ----------------------------------------------------------------
-  
-  
-  
-  passat <- reactive({
-    
-    passat <- readxl::read_excel("passat.xlsx") %>%
-      filter(year >= 2014)
-    
-    #rds <- readxl::read_excel("data/passat.xlsx")
-    
-    
-  })
-  
-  day <- reactive({
-    
-    day <- readRDS("day.Rds")
-    
-  })
-  
 }
 
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server)
