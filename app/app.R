@@ -6,7 +6,7 @@ library(bsicons)
 #Skal ikke sættes når app'en skal deployes. Det er kun til lokal testning
 #setwd("C:/Users/sibe/OneDrive - EaDania/Datavisualisering/2025/GitHub/03_lektion_shiny/03_lektion")
 
-day <- readRDS("C:/Users/hajer/OneDrive/Documents/GitHub/03_lektion_shiny/shiny_simon/app/day.Rds") 
+day <- readRDS("C:/Users/hajer/OneDrive/Documents/GitHub/shiny_simon/app/day.Rds") 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(

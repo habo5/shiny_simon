@@ -12,7 +12,7 @@ get_day_name <- function(day_number) {
   }
 }
 
-write_rds(get_day_name, "C:/Users/hajer/OneDrive/Documents/GitHub/03_lektion_shiny/shiny_simon/app/day.Rds")
+write_rds(get_day_name, "C:/Users/hajer/OneDrive/Documents/GitHub/shiny_simon/app/day.Rds")
 
 #get_day_name(2)
 
