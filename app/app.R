@@ -94,7 +94,7 @@ server <- function(input, output) {
                 "Number of bins:",
                 min = min(passat$year, na.rm = TRUE),
                 max = max(passat$year, na.rm = TRUE),
-                value = 30)
+                value = 5)
     
   })
   
